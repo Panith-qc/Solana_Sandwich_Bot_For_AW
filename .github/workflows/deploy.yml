@@ -20,13 +20,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
+      - name: Prepare deployment files
+        run: |
+          mkdir deploy
+          cp index.html deploy/
+          cp index-jeAI1y35.js deploy/
+          cp index-CPC8rObV.css deploy/
+          cp favicon.svg deploy/
+          cp robots.txt deploy/
+          echo "Files prepared for deployment:"
+          ls -la deploy/
+        
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: deploy
 
   deploy:
     environment:
