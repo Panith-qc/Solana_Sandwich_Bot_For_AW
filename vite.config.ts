@@ -15,4 +15,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   base: process.env.NODE_ENV === 'production' ? '/Solana_Sandwich_Bot_For_AW/' : '/',
+  build: {
+    outDir: 'github-pages-files'
+  }
 }));
