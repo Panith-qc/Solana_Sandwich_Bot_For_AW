@@ -1,12 +1,12 @@
 {
-  "name": "solana-trading-bot",
+  "name": "solana-sandwich-bot-for-aw",
   "description": "AI-powered Solana trading bot with real-time pattern recognition",
-  "author": "Your Name",
+  "author": "Panith-qc",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/solana-trading-bot.git"
+    "url": "https://github.com/Panith-qc/Solana_Sandwich_Bot_For_AW.git"
   },
-  "homepage": "https://yourusername.github.io/solana-trading-bot",
+  "homepage": "https://Panith-qc.github.io/Solana_Sandwich_Bot_For_AW",
   "type": "module",
   "packageManager": "pnpm@8.10.0",
   "scripts": {
