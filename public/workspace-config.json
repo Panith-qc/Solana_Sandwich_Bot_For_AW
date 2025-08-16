@@ -1,0 +1,6 @@
+{
+  "autoRefresh": false,
+  "refreshInterval": 0,
+  "keepAlive": true,
+  "preventReload": true
+}

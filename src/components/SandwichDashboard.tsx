@@ -10,9 +10,11 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertCircle, TrendingUp, Zap, Activity, DollarSign, Clock, Target, Cpu } from 'lucide-react';
 import { useRealSandwichBot } from '@/hooks/useRealSandwichBot';
+import { useWalletConnection } from '@/hooks/useWalletConnection';
 import LiveMarketStats from '@/components/LiveMarketStats';
 import RealTradingConnection from '@/components/RealTradingConnection';
 import StrategySelector from '@/components/StrategySelector';
+import UniversalWalletConnection from '@/components/UniversalWalletConnection';
 
 export default function SandwichDashboard() {
   const {
@@ -25,18 +27,23 @@ export default function SandwichDashboard() {
     startBot,
     stopBot,
     updateConfig,
-    isScanning
+    isScanning,
+    liveTrading,
+    connectedWallet,
+    enableLiveTrading,
+    disableLiveTrading
   } = useRealSandwichBot();
 
-  const [isWalletConnected, setIsWalletConnected] = React.useState(false);
-  const [walletAddress, setWalletAddress] = React.useState<string>();
+  const { wallet, connectWallet, disconnectWallet, executeTransaction } = useWalletConnection();
   const [selectedStrategy, setSelectedStrategy] = React.useState('BALANCED');
+  const [currentWalletAddress, setCurrentWalletAddress] = React.useState<string | null>(null);
 
-  const handleWalletConnect = (address: string, privateKey: string) => {
-    setWalletAddress(address);
-    setIsWalletConnected(true);
-    // In real implementation, store private key securely
-    console.log('Wallet connected:', address);
+  const handleWalletConnect = async () => {
+    try {
+      await connectWallet();
+    } catch (error) {
+      console.error('Wallet connection failed:', error);
+    }
   };
 
   const handleStrategyChange = (strategy: string) => {
@@ -277,6 +284,27 @@ export default function SandwichDashboard() {
                           <div>Amount: {formatUSD(pos.amount)}</div>
                           <div>Gas: {formatSOL(pos.gasUsed / 1e9)}</div>
                         </div>
+                        {/* Live/Demo indicator for positions */}
+                        <div className="mt-2 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant={pos.isLive ? "default" : "secondary"} 
+                              className={`text-xs ${pos.isLive ? 'bg-green-600' : 'bg-gray-600'}`}
+                            >
+                              {pos.isLive ? '🔴 LIVE' : '🎮 DEMO'}
+                            </Badge>
+                            {pos.connectedWallet && (
+                              <span className="text-gray-500">
+                                {pos.connectedWallet.slice(0, 4)}...{pos.connectedWallet.slice(-4)}
+                              </span>
+                            )}
+                          </div>
+                          {pos.backRunTx && (
+                            <span className="text-blue-400 font-mono">
+                              TX: {pos.backRunTx.slice(0, 8)}...
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                     {positions.length === 0 && (
@@ -450,12 +478,101 @@ export default function SandwichDashboard() {
               onStrategyChange={handleStrategyChange}
             />
 
-            {/* Real Trading Connection */}
-            <RealTradingConnection 
-              onConnect={handleWalletConnect}
-              isConnected={isWalletConnected}
-              walletAddress={walletAddress}
-            />
+            {/* Universal Wallet Connection */}
+            <Card className="bg-black/40 border-purple-500/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  🌐 Universal Wallet Connection
+                </CardTitle>
+                <CardDescription>
+                  Works with ANY Solana wallet - just paste the wallet address
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <UniversalWalletConnection 
+                  onWalletConnected={(address) => {
+                    console.log('Wallet connected for live trading:', address);
+                    setCurrentWalletAddress(address);
+                  }}
+                  onWalletDisconnected={() => {
+                    console.log('Wallet disconnected');
+                    setCurrentWalletAddress(null);
+                    disableLiveTrading();
+                  }}
+                />
+                
+                {/* Live Trading Controls */}
+                <div className="mt-6 p-4 border border-orange-500/20 bg-orange-500/5 rounded-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <div className="text-orange-400 font-medium">⚡ Live Trading Mode</div>
+                      <div className="text-sm text-gray-400">
+                        Execute real trades on Solana blockchain
+                      </div>
+                    </div>
+                    <Badge className={liveTrading ? "bg-green-600" : "bg-gray-600"}>
+                      {liveTrading ? "LIVE" : "DEMO"}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {(currentWalletAddress || connectedWallet) && (
+                      <div className="text-sm text-white mb-3">
+                        Connected: <span className="text-green-400">{(currentWalletAddress || connectedWallet)?.slice(0, 8)}...{(currentWalletAddress || connectedWallet)?.slice(-8)}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-3">
+                      {!liveTrading ? (
+                        <Button 
+                          onClick={() => {
+                            const walletToUse = currentWalletAddress || connectedWallet;
+                            console.log('Enabling live trading for wallet:', walletToUse);
+                            if (walletToUse) {
+                              enableLiveTrading(walletToUse);
+                            } else {
+                              alert('Please connect a wallet first!');
+                            }
+                          }}
+                          disabled={!currentWalletAddress && !connectedWallet}
+                          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          🚀 Enable Live Trading
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={() => {
+                            console.log('Disabling live trading');
+                            disableLiveTrading();
+                          }}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          🛑 Switch to Demo Mode
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {liveTrading && (
+                      <div className="p-3 border border-red-500/20 bg-red-500/5 rounded">
+                        <div className="text-red-400 text-sm font-medium mb-1">⚠️ LIVE TRADING ACTIVE</div>
+                        <div className="text-xs text-gray-300">
+                          • Real SOL will be used for trades<br/>
+                          • Max trade size: {config.maxTradeSize || 0.1} SOL<br/>
+                          • Profits/losses will reflect in your wallet<br/>
+                          • Connected wallet: {(currentWalletAddress || connectedWallet)?.slice(0, 8)}...{(currentWalletAddress || connectedWallet)?.slice(-8)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!currentWalletAddress && !connectedWallet && (
+                      <div className="text-sm text-gray-400">
+                        Connect a wallet above to enable live trading
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             
             {/* Bot Configuration */}
             <Card className="bg-black/40 border-gray-500/20">
