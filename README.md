@@ -39,8 +39,8 @@ An advanced AI-powered trading bot for Solana markets with real-time pattern rec
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/solana-trading-bot.git
-cd solana-trading-bot
+git clone https://github.com/Panith-qc/Solana_Sandwich_Bot_For_AW.git
+cd Solana_Sandwich_Bot_For_AW
 ```
 
 2. **Install dependencies**
@@ -267,7 +267,7 @@ This trading bot is for educational and testing purposes. Cryptocurrency trading
 2. **Go to Repository Settings**
 3. **Enable GitHub Pages**
 4. **Select source branch**
-5. **Your bot will be live at**: `https://yourusername.github.io/solana-trading-bot`
+5. **Your bot will be live at**: `https://Panith-qc.github.io/Solana_Sandwich_Bot_For_AW`
 
 ### Vercel Deployment
 
