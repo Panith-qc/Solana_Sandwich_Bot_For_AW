@@ -3,11 +3,10 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { viteSourceLocator } from "@metagptx/vite-plugin-source-locator";
 
+// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
-    viteSourceLocator({
-      prefix: "mgx",
-    }),
+
     react(),
   ],
   resolve: {
@@ -15,8 +14,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base:
-    process.env.NODE_ENV === "production"
-      ? "/Solana_Sandwich_Bot_For_AW/"
-      : "/", // matches your repo name exactly
+  base: process.env.NODE_ENV === 'production' ? '/Solana_Sandwich_Bot_For_AW/' : '/',
 }));
